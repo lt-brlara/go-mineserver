@@ -43,7 +43,7 @@ type Version struct {
 type Players struct {
 	Max    int      `json:"max"`
 	Online int      `json:"online"`
-	Sample []Player `json:"sample"`
+	//Sample []Player `json:"sample"`
 }
 
 type Description struct {

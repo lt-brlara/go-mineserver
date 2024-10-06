@@ -13,6 +13,7 @@ const (
 
 var (
 	ErrVarIntTooBig = errors.New("VarInt is too big")
+	ErrVarLongTooBig = errors.New("VarLong is too big")
 )
 
 func readVarInt(buffer *bytes.Buffer) (int32, error) {
@@ -45,18 +46,18 @@ func readVarInt(buffer *bytes.Buffer) (int32, error) {
 	return int32(value), nil
 }
 
-func writeVarInt(w io.Writer, v int32) error {
+func writeVarInt(w io.Writer, v int32) (uint8, error) {
 	const MAX_BYTES = 5
 	var n uint8 = 0
 	for {
 		if n > 5 {
-			return ErrVarIntTooBig
+			return n, ErrVarIntTooBig
 		}
 
 		encodedBits := (byte)(v & int32(SEGMENT_BITS))
 		if v & ^int32(SEGMENT_BITS) == 0 {
 			w.Write([]byte{encodedBits})
-			return nil
+			return n, nil
 		}
 
 		encodedBits |= CONTINUE_BIT
@@ -64,5 +65,39 @@ func writeVarInt(w io.Writer, v int32) error {
 
 		v >>= 7
 		n++
+	}
+}
+
+func readVarLong(buffer *bytes.Buffer) (int64, error) {
+	var value int64 
+	var position int8 
+
+	for {
+		currentByte, err := buffer.ReadByte()
+		if err != nil { return value, err }
+		value |= (int64) (currentByte & SEGMENT_BITS) << position
+
+		if ((currentByte & CONTINUE_BIT) == 0) { break }
+
+		position += 7
+
+		if (position >= 64) { return value, ErrVarLongTooBig }
+	}
+
+	return value, nil
+}
+
+func writeVarLong(w io.Writer, v int64) (uint8, error) {
+	var n uint8
+	for {
+		if v & ^int64(SEGMENT_BITS) == 0 {
+				w.Write([]byte{byte(v)})
+				return n, nil
+		}
+
+		w.Write([]byte{(v & int64(SEGMENT_BITS)) | int64(CONTINUE_BIT)})
+
+		// Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
+		value >>= 7
 	}
 }
