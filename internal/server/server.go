@@ -3,10 +3,8 @@ package server
 import (
 	"log"
 	"net"
-)
 
-const (
-	MAX_PACKET_LENGTH_BYTES uint16 = 65285
+	"github.com/blara/go-mineserver/internal/handle"
 )
 
 func Run() error {
@@ -26,34 +24,6 @@ func Run() error {
 		} else {
 			log.Println("Client connected")
 		}
-		go handleConnection(conn)
+		go handle.HandleConnection(conn)
 	}
-}
-
-type Player struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
-}
-
-type Version struct {
-	Name     string `json:"name"`
-	Protocol int    `json:"protocol"`
-}
-
-type Players struct {
-	Max    int      `json:"max"`
-	Online int      `json:"online"`
-	//Sample []Player `json:"sample"`
-}
-
-type Description struct {
-	Text string `json:"text"`
-}
-
-type StatusRequestResponse struct {
-	Version            `json:"version"`
-	Players            `json:"players"`
-	Description        `json:"description"`
-	Favicon            string `json:"favicon"`
-	EnforcesSecureChat bool   `json:"enforcesSecureChat"`
 }
