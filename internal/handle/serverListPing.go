@@ -3,32 +3,29 @@ package handle
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 
+	"github.com/blara/go-mineserver/internal/log"
 	"github.com/blara/go-mineserver/internal/packet"
 )
 
-func handleStatusRequest() ([]byte, error) {
-	// Build StatusRequestResponse
-	payload := &packet.StatusRequestResponse{
-		Version: packet.Version{
-			Name:     "1.21.1",
-			Protocol: 767,
-		},
-		Players: packet.Players{
-			Max:    20,
-			Online: 0,
-		},
-		Description: packet.Description{
-			Text: "Test server!",
-		},
-		EnforcesSecureChat: false,
+func handleStatusRequest(req *packet.Packet) ([]byte, error) {
+
+	if req.Length > 1 {
+		_, err := req.ToHandshake()
+		if err != nil {
+			log.Error("Error converting Packet to StatusRequest", "error", err)
+		}
+		return nil, nil
 	}
+
+	log.Info("Packet is StatusRequest", "fields", "<nofields>")
+
+	payload := packet.NewStatusReponse()
 
 	// byte encode JSON object
 	bytePayload, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("Could not marshal data: %v", err)
+		log.Error("Could not marshal data", "error", err)
 	}
 
 	// Build payload buffer
@@ -54,7 +51,7 @@ func handlePingRequest(req *packet.Packet) ([]byte, error) {
 	// Build payload buffer
 	var buf bytes.Buffer
 	packet.WriteVarInt(&buf, int32(packet.PING_PACKET_ID))
-	buf.Write(req.Data)
+	buf.Write(req.Data.Bytes())
 
 	// Calculate total length
 	packet.WriteVarInt(&resp, int32(buf.Len()))

@@ -2,6 +2,8 @@ package packet
 
 import (
 	"bytes"
+
+	"github.com/blara/go-mineserver/internal/log"
 )
 
 const (
@@ -13,7 +15,7 @@ const (
 type Packet struct {
 	Length   int32
 	PacketID byte
-	Data     []byte
+	Data     *bytes.Buffer
 }
 
 func NewPacket(data *bytes.Buffer) (*Packet, error) {
@@ -31,8 +33,14 @@ func NewPacket(data *bytes.Buffer) (*Packet, error) {
 	p := &Packet{
 		Length:   length,
 		PacketID: byte(packetID),
-		Data:     data.Bytes(),
+		Data:     data,
 	}
+
+	// Log the packet details
+	log.Info("Received Packet",
+		"Length", p.Length,
+		"PacketID", p.PacketID,
+	)
 
 	return p, nil
 }

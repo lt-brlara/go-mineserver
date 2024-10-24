@@ -1,10 +1,10 @@
 package server
 
 import (
-	"log"
 	"net"
 
 	"github.com/blara/go-mineserver/internal/handle"
+	"github.com/blara/go-mineserver/internal/log"
 )
 
 func Run() error {
@@ -14,15 +14,15 @@ func Run() error {
 	}
 
 	defer listener.Close()
-	log.Println("Server listening on port 25565")
+	log.Info("Server listening on port 25565")
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Println("Error accepting connection:", err)
+			log.Error("Error accepting connection", "error", err)
 			continue
 		} else {
-			log.Println("Client connected")
+			log.Info("Client connected")
 		}
 		go handle.HandleConnection(conn)
 	}

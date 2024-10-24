@@ -2,15 +2,27 @@ package handle
 
 import (
 	"bytes"
-	"log"
+	"io"
 	"net"
 
+	"github.com/blara/go-mineserver/internal/log"
 	"github.com/blara/go-mineserver/internal/packet"
 )
 
 const (
 	MAX_PACKET_LENGTH_BYTES uint16 = 65285
 )
+
+// For example..:
+// Log: Info Packet recieved: PacketID = 0x00
+// Log: Info Packet is Handshake: <insert fields here>
+
+// Log: Info Packet recieved: PacketID = 0x00
+// Log: Info Packet is Status Request: nil
+
+// Log: Sending Status Reponse: <insert fields here>
+
+// Log: Sending Pong Reponse: <insert fields here>
 
 func HandleConnection(conn net.Conn) {
 	defer conn.Close()
@@ -19,32 +31,31 @@ func HandleConnection(conn net.Conn) {
 
 	for {
 		n, err := conn.Read(pkt)
-		if err != nil {
-			log.Println("Error reading from connection:", err)
+		if err == io.EOF {
+			return
+		} else if err != nil {
+			log.Error("Error reading from connection:", "error", err)
 			return
 		}
 
 		// Create Packet from buffer
 		buffer := bytes.NewBuffer(pkt[:n])
-		log.Printf("Recieved: 0x%x", buffer)
 		request, err := packet.NewPacket(buffer)
 		if err != nil {
-			log.Println(err)
+			log.Error("Error:", err)
 			break
 		}
-		log.Printf("Request:\n\t%+v", request)
 
 		// Build response based on which request we recieved
 		var resp []byte
 		switch byte(request.PacketID) {
 		case packet.STATUS_PACKET_ID:
-			resp, _ = handleStatusRequest()
+			resp, _ = handleStatusRequest(request)
 		case packet.PING_PACKET_ID:
 			resp, _ = handlePingRequest(request)
 		}
 
-		log.Printf("Sent: 0x%x", resp)
-		// Send response to client
 		conn.Write(resp)
+
 	}
 }
