@@ -7,6 +7,7 @@ import (
 	"github.com/blara/go-mineserver/internal/log"
 )
 
+// Run starts the server and creates connections to be handled downstream.
 func Run() error {
 	listener, err := net.Listen("tcp", ":25565")
 	if err != nil {
