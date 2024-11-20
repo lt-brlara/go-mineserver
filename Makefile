@@ -1,18 +1,26 @@
-.DEFAULT_GOAL = build
+BINARY_NAME = main
+GO = go
+GOFLAGS = -x -n
+GOENTRYPOINT = cmd/main.go
 
-BUILDFLAGS = -x
-ENTRYPOINT = cmd/main.go
-EXECUTABLE = main
+build:
+	$(GO) build $(GOFLAGS) -o $(BINARY_NAME) $(GOENTRYPOINT)
 
-build :
-	go build -o $(EXECUTABLE) $(BUILDFLAGS) $(ENTRYPOINT)
+run:
+	$(GO) run $(GOENTRYPOINT)
 
-run :
-	go run $(ENTRYPOINT)
+test:
+	$(GO) test ./...
 
-test :
-	go test -v ./...
+lint:
+	golangci-lint run
+
+fmt:
+	$(GO) fmt ./...
 
 .PHONY : clean
 clean :
 	rm -f $(EXECUTABLE)
+
+.PHONY: default
+default: build
