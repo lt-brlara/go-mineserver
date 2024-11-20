@@ -16,6 +16,8 @@ var (
 	ErrVarLongTooBig = errors.New("VarLong is too big")
 )
 
+// ReadVarInt returns the LEB-128 decoded value read from the given buffer, and
+// an error if present.
 func ReadVarInt(buffer *bytes.Buffer) (int32, error) {
 	var value int
 	var position = 0
@@ -46,6 +48,8 @@ func ReadVarInt(buffer *bytes.Buffer) (int32, error) {
 	return int32(value), nil
 }
 
+// WriteVarInt returns the number of bytes written to the given buffer, and an
+// error if present.
 func WriteVarInt(w io.Writer, v int32) (uint8, error) {
 	const MAX_BYTES = 5
 	var n uint8 = 0

@@ -4,6 +4,8 @@ import (
 	"bytes"
 )
 
+// ReadVarLong returns the LEB-128 decoded value read from the given buffer, and
+// an error if present.
 func ReadVarLong(buffer *bytes.Buffer) (int64, error) {
 	var value int64
 	var position int8
@@ -29,6 +31,8 @@ func ReadVarLong(buffer *bytes.Buffer) (int64, error) {
 	return value, nil
 }
 
+// WriteVarLong returns the number of bytes written to the given buffer, and an
+// error if present.
 func WriteVarLong(w *bytes.Buffer, v int64) (uint8, error) {
 	var n uint8
 	for {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"net"
+	"reflect"
 
 	"github.com/blara/go-mineserver/internal/log"
 	"github.com/blara/go-mineserver/internal/packet"
@@ -13,17 +14,11 @@ const (
 	MAX_PACKET_LENGTH_BYTES uint16 = 65285
 )
 
-// For example..:
-// Log: Info Packet recieved: PacketID = 0x00
-// Log: Info Packet is Handshake: <insert fields here>
-
-// Log: Info Packet recieved: PacketID = 0x00
-// Log: Info Packet is Status Request: nil
-
-// Log: Sending Status Reponse: <insert fields here>
-
-// Log: Sending Pong Reponse: <insert fields here>
-
+// HandleConnection transimits and recieves bytes on a provided connection,
+// conn.
+//
+// The function constrains all traffic on a given client connection to a single
+// abstraction.
 func HandleConnection(conn net.Conn) {
 	defer conn.Close()
 
@@ -40,22 +35,36 @@ func HandleConnection(conn net.Conn) {
 
 		// Create Packet from buffer
 		buffer := bytes.NewBuffer(pkt[:n])
-		request, err := packet.NewPacket(buffer)
+		request, err := packet.RequestFactory(buffer)
 		if err != nil {
-			log.Error("Error:", err)
+			log.Error("Error building Request", "err", err)
+			break
+		}
+		log.Info("request created",
+			"type", reflect.TypeOf(request),
+			"request", log.Fmt("%+v", request),
+		)
+
+		// Build response based on which request we recieved
+		var respBuffer bytes.Buffer
+
+		responseStrategy, err := ResponseStrategyFactory(request)
+		if err != nil {
+			log.Error("Error", err)
 			break
 		}
 
-		// Build response based on which request we recieved
-		var resp []byte
-		switch byte(request.PacketID) {
-		case packet.STATUS_PACKET_ID:
-			resp, _ = handleStatusRequest(request)
-		case packet.PING_PACKET_ID:
-			resp, _ = handlePingRequest(request)
+		resp := responseStrategy.GenerateResponse(request)
+		respBuffer, err = resp.Serialize()
+		if err != nil {
+			log.Error("Error", err)
+			break
 		}
 
-		conn.Write(resp)
-
+		conn.Write(respBuffer.Bytes())
+		log.Info("response sent",
+			"type", reflect.TypeOf(resp),
+			"response", log.Fmt("%+v", resp),
+		)
 	}
 }
