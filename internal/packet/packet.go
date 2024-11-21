@@ -3,6 +3,8 @@ package packet
 import (
 	"bytes"
 	"errors"
+
+	"github.com/blara/go-mineserver/internal/state"
 )
 
 const (
@@ -27,7 +29,7 @@ type Response interface {
 
 // RequestFactory returns a Request with the proper struct fields matching
 // the protocol specification based on bytes read from data.
-func RequestFactory(data *bytes.Buffer) (Request, error) {
+func RequestFactory(data *bytes.Buffer, session *state.Session) (Request, error) {
 
 	length, err := readVarInt(data)
 	if err != nil {
@@ -42,7 +44,7 @@ func RequestFactory(data *bytes.Buffer) (Request, error) {
 
 	switch packetIDByte {
 	case STATUS_PACKET_ID:
-		return StatusPacketFactory(packetIDByte, length, data)
+		return StatusPacketFactory(packetIDByte, length, data, session)
 	case PING_PACKET_ID:
 		return NewPingRequest(data)
 	}
@@ -52,12 +54,13 @@ func RequestFactory(data *bytes.Buffer) (Request, error) {
 
 // StatusPacketFactory returns the correct Request based on the criteria of
 // different types of status-related packets.
-func StatusPacketFactory(id byte, length int32, data *bytes.Buffer) (Request, error) {
+func StatusPacketFactory(id byte, length int32, data *bytes.Buffer, session *state.Session) (Request, error) {
 
-	if length <= 1 {
-		return NewStatusRequest(data)
-	} else if length > 1 {
+	switch session.State {
+	case state.StateNull:
 		return NewHandshakeRequest(data)
+	case state.StateStatus:
+		return NewStatusRequest(data)
 	}
 
 	return nil, ErrPacketNotHandled

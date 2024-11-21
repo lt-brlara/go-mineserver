@@ -3,11 +3,11 @@ package handle
 import (
 	"bytes"
 	"io"
-	"net"
 	"reflect"
 
 	"github.com/blara/go-mineserver/internal/log"
 	"github.com/blara/go-mineserver/internal/packet"
+	"github.com/blara/go-mineserver/internal/state"
 )
 
 const (
@@ -19,13 +19,13 @@ const (
 //
 // The function constrains all traffic on a given client connection to a single
 // abstraction.
-func HandleConnection(conn net.Conn) {
-	defer conn.Close()
+func HandleConnection(session *state.Session) {
+	defer session.Conn.Close()
 
 	pkt := make([]byte, MAX_PACKET_LENGTH_BYTES) // Buffer to hold incoming data
 
 	for {
-		n, err := conn.Read(pkt)
+		n, err := session.Conn.Read(pkt)
 		if err == io.EOF {
 			return
 		} else if err != nil {
@@ -35,9 +35,14 @@ func HandleConnection(conn net.Conn) {
 
 		// Create Packet from buffer
 		buffer := bytes.NewBuffer(pkt[:n])
-		request, err := packet.RequestFactory(buffer)
+		debugBytes := buffer.Bytes()
+		request, err := packet.RequestFactory(buffer, session)
 		if err != nil {
-			log.Error("Error building Request", "err", err)
+			log.Error("Error building Request",
+				"err", err,
+				"data", log.Fmt("0x%x", debugBytes),
+				"session", log.Fmt("%+v", session),
+			)
 			break
 		}
 		log.Info("request created",
@@ -54,17 +59,18 @@ func HandleConnection(conn net.Conn) {
 			break
 		}
 
-		resp := responseStrategy.GenerateResponse(request)
+		resp := responseStrategy.GenerateResponse(request, session)
 		respBuffer, err = resp.Serialize()
 		if err != nil {
 			log.Error("Error", err)
 			break
 		}
 
-		conn.Write(respBuffer.Bytes())
+		session.Conn.Write(respBuffer.Bytes())
 		log.Info("response sent",
 			"type", reflect.TypeOf(resp),
 			"response", log.Fmt("%+v", resp),
+			"session", log.Fmt("%+v", session),
 		)
 	}
 }

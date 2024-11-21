@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/blara/go-mineserver/internal/packet"
+	"github.com/blara/go-mineserver/internal/state"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 // Request struct representing the return set of data to provide to a client
 // connection.
 type ResponseStrategy interface {
-	GenerateResponse(packet.Request) packet.Response
+	GenerateResponse(packet.Request, *state.Session) packet.Response
 }
 
 // ResponseStrategyFactory returns a ResponseStrategy interface for later use.

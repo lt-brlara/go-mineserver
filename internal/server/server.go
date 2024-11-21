@@ -5,6 +5,7 @@ import (
 
 	"github.com/blara/go-mineserver/internal/handle"
 	"github.com/blara/go-mineserver/internal/log"
+	"github.com/blara/go-mineserver/internal/state"
 )
 
 // Run starts the server and creates connections to be handled downstream.
@@ -25,6 +26,9 @@ func Run() error {
 		} else {
 			log.Info("Client connected")
 		}
-		go handle.HandleConnection(conn)
+
+		s := state.NewSession(conn)
+
+		go handle.HandleConnection(s)
 	}
 }

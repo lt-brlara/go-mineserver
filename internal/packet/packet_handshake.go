@@ -3,6 +3,8 @@ package packet
 import (
 	"bytes"
 	"encoding/binary"
+
+	"github.com/blara/go-mineserver/internal/state"
 )
 
 // A HandshakeRequest represents all fields in a serverbound intention.
@@ -10,10 +12,10 @@ import (
 // See the reference documentation on intention for more information:
 // https://wiki.vg/Protocol#Handshaking
 type HandshakeRequest struct {
-	ProtocolVersion int32  `json:"version"`
-	Address         string `json:"addr"`
-	Port            int32  `json:"port"`
-	NextState       int32  `json:"nextState"`
+	ProtocolVersion int32              `json:"version"`
+	Address         string             `json:"addr"`
+	Port            int32              `json:"port"`
+	NextState       state.SessionState `json:"nextState"`
 }
 
 // NewHandshakeRequest returns a HandshakeRequest with all fields parsed.
@@ -45,7 +47,7 @@ func NewHandshakeRequest(data *bytes.Buffer) (*HandshakeRequest, error) {
 		ProtocolVersion: protocolVersion,
 		Address:         string(serverAddr),
 		Port:            int32(binary.BigEndian.Uint16(port)),
-		NextState:       nextState,
+		NextState:       state.SessionState(nextState),
 	}, nil
 }
 
