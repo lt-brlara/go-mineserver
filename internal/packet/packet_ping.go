@@ -36,14 +36,14 @@ func (r *PingResponse) Serialize() (bytes.Buffer, error) {
 	var resp bytes.Buffer
 	var buf bytes.Buffer
 
-	WriteVarInt(&buf, int32(PING_PACKET_ID))
+	writeVarInt(&buf, int32(PING_PACKET_ID))
 	err := binary.Write(&buf, binary.BigEndian, r.Timestamp)
 	if err != nil {
 		return resp, err
 	}
 
 	// Calculate total length
-	WriteVarInt(&resp, int32(buf.Len()))
+	writeVarInt(&resp, int32(buf.Len()))
 
 	// Copy payload buffer to response
 	resp.Write(buf.Bytes())

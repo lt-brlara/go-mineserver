@@ -18,12 +18,12 @@ type HandshakeRequest struct {
 
 // NewHandshakeRequest returns a HandshakeRequest with all fields parsed.
 func NewHandshakeRequest(data *bytes.Buffer) (*HandshakeRequest, error) {
-	protocolVersion, err := ReadVarInt(data)
+	protocolVersion, err := readVarInt(data)
 	if err != nil {
 		return nil, err
 	}
 
-	stringLength, err := ReadVarInt(data)
+	stringLength, err := readVarInt(data)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func NewHandshakeRequest(data *bytes.Buffer) (*HandshakeRequest, error) {
 		return nil, err
 	}
 
-	nextState, err := ReadVarInt(data)
+	nextState, err := readVarInt(data)
 	if err != nil {
 		return nil, err
 	}

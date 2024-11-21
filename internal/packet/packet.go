@@ -29,12 +29,12 @@ type Response interface {
 // the protocol specification based on bytes read from data.
 func RequestFactory(data *bytes.Buffer) (Request, error) {
 
-	length, err := ReadVarInt(data)
+	length, err := readVarInt(data)
 	if err != nil {
 		return nil, err
 	}
 
-	packetID, err := ReadVarInt(data)
+	packetID, err := readVarInt(data)
 	if err != nil {
 		return nil, err
 	}

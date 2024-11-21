@@ -57,12 +57,12 @@ func (r *StatusResponse) Serialize() (bytes.Buffer, error) {
 	}
 
 	var buf bytes.Buffer
-	WriteVarInt(&buf, int32(STATUS_PACKET_ID))
-	WriteVarInt(&buf, int32(len(bytePayload)))
+	writeVarInt(&buf, int32(STATUS_PACKET_ID))
+	writeVarInt(&buf, int32(len(bytePayload)))
 	buf.Write(bytePayload)
 
 	var resp bytes.Buffer
-	WriteVarInt(&resp, int32(buf.Len()))
+	writeVarInt(&resp, int32(buf.Len()))
 	resp.Write(buf.Bytes())
 
 	return resp, err
