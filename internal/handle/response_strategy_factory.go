@@ -31,6 +31,10 @@ func ResponseStrategyFactory(req packet.Request) (ResponseStrategy, error) {
 		return &HandshakeResponseStrategy{}, nil
 	case *packet.PingRequest:
 		return &PingResponseStrategy{}, nil
+	case *packet.LoginStartRequest:
+		return &EncryptionRequestStrategy{}, nil
+	case *packet.EncryptionResponse:
+		return &LoginSuccessStrategy{}, nil
 	default:
 		return nil, ErrStrategyNotPresent
 	}

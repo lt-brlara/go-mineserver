@@ -1,6 +1,8 @@
 package log
 
 import (
+	"runtime/debug"
+
 	hclog "github.com/hashicorp/go-hclog"
 )
 
@@ -14,4 +16,9 @@ func Error(msg string, args ...interface{}) {
 
 func Fmt(str string, args ...interface{}) hclog.Format {
 	return hclog.Fmt(str, args...)
+}
+
+func Panic(str string, args ...interface{}) {
+	hclog.Default().Error(str, args...)
+	panic(debug.Stack())
 }

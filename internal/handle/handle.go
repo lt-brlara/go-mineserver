@@ -42,6 +42,7 @@ func HandleConnection(session *state.Session) {
 				"err", err,
 				"data", log.Fmt("0x%x", debugBytes),
 				"session", log.Fmt("%+v", session),
+				"request", log.Fmt("%+v", request),
 			)
 			break
 		}
@@ -55,14 +56,18 @@ func HandleConnection(session *state.Session) {
 
 		responseStrategy, err := ResponseStrategyFactory(request)
 		if err != nil {
-			log.Error("Error", err)
+			log.Error("Error retrieving ResponseStrategy",
+				"error", err,
+				"session", log.Fmt("%+v", session),
+				"request", log.Fmt("%+v", request),
+			)
 			break
 		}
 
 		resp := responseStrategy.GenerateResponse(request, session)
 		respBuffer, err = resp.Serialize()
 		if err != nil {
-			log.Error("Error", err)
+			log.Error("Failed to serialize response", "error", err)
 			break
 		}
 
