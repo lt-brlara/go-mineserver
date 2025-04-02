@@ -23,9 +23,7 @@ func Run() error {
 		if err != nil {
 			log.Error("Error accepting connection", "error", err)
 			continue
-		} else {
-			log.Info("Client connected")
-		}
+		} 
 
 		s := state.NewSession(conn)
 

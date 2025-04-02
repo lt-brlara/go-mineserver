@@ -4,6 +4,10 @@ import (
 	hclog "github.com/hashicorp/go-hclog"
 )
 
+func Debug(msg string, args ...interface{}) {
+	hclog.Default().Debug(msg, args...)
+}
+
 func Info(msg string, args ...interface{}) {
 	hclog.Default().Info(msg, args...)
 }

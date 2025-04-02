@@ -26,7 +26,11 @@ type PingResponseStrategy struct{}
 
 func (rs *PingResponseStrategy) GenerateResponse(r packet.Request, s *state.Session) packet.Response {
 	p := r.(*packet.PingRequest)
-	return &packet.PingResponse{
+	resp := &packet.PingResponse{
 		Timestamp: p.Timestamp,
 	}
+
+	s.Disconnect = true
+
+	return resp
 }
