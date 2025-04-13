@@ -7,5 +7,9 @@ import (
 )
 
 func main() {
-	log.Fatal(server.Run())
+	log.Println("hello world!")
+
+	s := server.New()
+
+	log.Fatal(s.Run())
 }

@@ -6,27 +6,27 @@ import (
 
 type ResourcePack struct {
 	Namespace string
-	Id string
-	Version string
+	Id        string
+	Version   string
 }
 
 type ClientboundKnownPacksResponse struct {
 	KnownPacks []ResourcePack
 }
 
-func NewClientboundKnownPacksResponse(r *LoginAcknowledgedRequest) (*ClientboundKnownPacksResponse) {
+func NewClientboundKnownPacksResponse() *ClientboundKnownPacksResponse {
 	return &ClientboundKnownPacksResponse{
 		KnownPacks: []ResourcePack{
 			{
 				Namespace: "minecraft:core",
-				Id: "1",
-				Version: "1.21.1",
+				Id:        "1",
+				Version:   "1.21.1",
 			},
 		},
 	}
 }
 
-func (r *ClientboundKnownPacksResponse) Serialize() (bytes.Buffer, error) {
+func (r *ClientboundKnownPacksResponse) Serialize() ([]byte, error) {
 	var buf bytes.Buffer
 
 	writeVarInt(&buf, int32(byte(0x0E)))
@@ -46,7 +46,7 @@ func (r *ClientboundKnownPacksResponse) Serialize() (bytes.Buffer, error) {
 	writeVarInt(&resp, int32(buf.Len()))
 	resp.Write(buf.Bytes())
 
-	return resp, err
+	return resp.Bytes(), err
 }
 
 type ServerboundKnownPacksRequest struct {
@@ -55,6 +55,11 @@ type ServerboundKnownPacksRequest struct {
 
 func NewServerboundKnownPacksRequest(data *bytes.Buffer) (*ServerboundKnownPacksRequest, error) {
 
-
 	return &ServerboundKnownPacksRequest{}, nil
+}
+
+type AcknowledgeFinishConfiguration struct {}
+
+func NewAcknowledgeFinishConfiguration(data *bytes.Buffer) (*AcknowledgeFinishConfiguration, error) {
+	return &AcknowledgeFinishConfiguration{}, nil
 }

@@ -53,6 +53,6 @@ func NewHandshakeRequest(data *bytes.Buffer) (*HandshakeRequest, error) {
 
 type HandshakeResponse struct{}
 
-func (r *HandshakeResponse) Serialize() (bytes.Buffer, error) {
-	return *bytes.NewBuffer(make([]byte, 0)), nil
+func (r *HandshakeResponse) Serialize() ([]byte, error) {
+	return []byte{}, nil
 }

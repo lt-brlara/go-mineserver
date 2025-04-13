@@ -5,26 +5,46 @@ import (
 	"github.com/blara/go-mineserver/internal/state"
 )
 
-type StatusResponseStrategy struct{}
 
-func (rs *StatusResponseStrategy) GenerateResponse(r packet.Request, s *state.Session) packet.Response {
+var _ ResponseStrategy = (*StatusStrategy)(nil)
+
+func NewStatusStrategy() ResponseStrategy {
+    return &StatusStrategy{}
+}
+
+type StatusStrategy struct{}
+
+func (rs *StatusStrategy) Execute(r packet.ServerboundPacket, s *state.Session) (packet.ClientboundPacket, error) {
 	_ = r.(*packet.StatusRequest)
-	return packet.NewStatusReponse()
+	return packet.NewStatusReponse(), nil
+}
+
+
+var _ ResponseStrategy = (*HandshakeResponseStrategy)(nil)
+func NewHandshakeStrategy() ResponseStrategy {
+    return &HandshakeResponseStrategy{}
 }
 
 type HandshakeResponseStrategy struct{}
 
-func (rs *HandshakeResponseStrategy) GenerateResponse(r packet.Request, s *state.Session) packet.Response {
+func (rs *HandshakeResponseStrategy) Execute(r packet.ServerboundPacket, s *state.Session) (packet.ClientboundPacket, error) {
 	req := r.(*packet.HandshakeRequest)
 
 	s.SetState(state.SessionState(req.NextState))
 
-	return &packet.HandshakeResponse{}
+	return nil, nil
 }
 
-type PingResponseStrategy struct{}
 
-func (rs *PingResponseStrategy) GenerateResponse(r packet.Request, s *state.Session) packet.Response {
+var _ ResponseStrategy = (*PingStrategy)(nil)
+
+func NewPingStrategy() ResponseStrategy {
+    return &PingStrategy{}
+}
+
+type PingStrategy struct{}
+
+func (rs *PingStrategy) Execute(r packet.ServerboundPacket, s *state.Session) (packet.ClientboundPacket, error) {
 	p := r.(*packet.PingRequest)
 	resp := &packet.PingResponse{
 		Timestamp: p.Timestamp,
@@ -32,5 +52,5 @@ func (rs *PingResponseStrategy) GenerateResponse(r packet.Request, s *state.Sess
 
 	s.Disconnect = true
 
-	return resp
+	return resp, nil
 }

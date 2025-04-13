@@ -32,14 +32,14 @@ type PingResponse struct {
 	Timestamp int64
 }
 
-func (r *PingResponse) Serialize() (bytes.Buffer, error) {
+func (r *PingResponse) Serialize() ([]byte, error) {
 	var resp bytes.Buffer
 	var buf bytes.Buffer
 
 	writeVarInt(&buf, int32(PING_PACKET_ID))
 	err := binary.Write(&buf, binary.BigEndian, r.Timestamp)
 	if err != nil {
-		return resp, err
+		return nil, err
 	}
 
 	// Calculate total length
@@ -48,5 +48,5 @@ func (r *PingResponse) Serialize() (bytes.Buffer, error) {
 	// Copy payload buffer to response
 	resp.Write(buf.Bytes())
 
-	return resp, nil
+	return resp.Bytes(), nil
 }

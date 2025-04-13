@@ -49,11 +49,12 @@ func NewStatusReponse() *StatusResponse {
 	return resp
 }
 
-func (r *StatusResponse) Serialize() (bytes.Buffer, error) {
+func (r *StatusResponse) Serialize() ([]byte, error) {
 
 	bytePayload, err := json.Marshal(r)
 	if err != nil {
 		log.Error("Could not marshal data", "error", err)
+	return nil, err
 	}
 
 	var buf bytes.Buffer
@@ -65,17 +66,17 @@ func (r *StatusResponse) Serialize() (bytes.Buffer, error) {
 	writeVarInt(&resp, int32(buf.Len()))
 	resp.Write(buf.Bytes())
 
-	return resp, err
+	return resp.Bytes(), nil
 }
 
 type Version struct {
 	Name     string `json:"name"`
-	Protocol int    `json:"protocol"`
+	Protocol int32    `json:"protocol"`
 }
 
 type Players struct {
-	Max    int      `json:"max"`
-	Online int      `json:"online"`
+	Max    int32      `json:"max"`
+	Online int32      `json:"online"`
 	Sample []Player `json:"sample"`
 }
 

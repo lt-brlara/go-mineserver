@@ -19,24 +19,26 @@ var (
 // Request struct representing the return set of data to provide to a client
 // connection.
 type ResponseStrategy interface {
-	GenerateResponse(packet.Request, *state.Session) packet.Response
+	Execute(packet.ServerboundPacket, *state.Session) (packet.ClientboundPacket, error)
 }
 
 // ResponseStrategyFactory returns a ResponseStrategy interface for later use.
-func ResponseStrategyFactory(req packet.Request) (ResponseStrategy, error) {
+func ResponseStrategyFactory(req packet.ServerboundPacket) (ResponseStrategy, error) {
 	switch req.(type) {
-	case *packet.StatusRequest:
-		return &StatusResponseStrategy{}, nil
 	case *packet.HandshakeRequest:
-		return &HandshakeResponseStrategy{}, nil
+		return NewHandshakeStrategy(), nil
+	case *packet.StatusRequest:
+		return NewStatusStrategy(),  nil
 	case *packet.PingRequest:
-		return &PingResponseStrategy{}, nil
+		return NewPingStrategy(), nil
 	case *packet.LoginStartRequest:
-		return &LoginStartStrategy{}, nil
+		return NewLoginStartStrategy(), nil
 	case *packet.LoginAcknowledgedRequest:
-		return &LoginAcknowledgedStrategy{}, nil
+		return NewLoginAckStrategy(), nil
 	case *packet.ServerboundKnownPacksRequest:
-		return &FinishConfigurationResponse{}, nil
+		return NewFinishConfigStrategy(), nil
+	case *packet.AcknowledgeFinishConfiguration:
+		return NewAckFinishConfigurationResponse(), nil
 	default:
 		return nil, ErrStrategyNotPresent
 	}

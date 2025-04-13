@@ -61,7 +61,7 @@ func NewLoginSuccessResponse(r *LoginStartRequest) (*LoginSuccessResponse) {
 	}
 }
 
-func (r *LoginSuccessResponse) Serialize() (bytes.Buffer, error) {
+func (r *LoginSuccessResponse) Serialize() ([]byte, error) {
 	var buf bytes.Buffer
 
 	writeVarInt(&buf, int32(LOGIN_PACKET_ID))
@@ -76,6 +76,6 @@ func (r *LoginSuccessResponse) Serialize() (bytes.Buffer, error) {
 	writeVarInt(&resp, int32(buf.Len()))
 	resp.Write(buf.Bytes())
 
-	return resp, err
+	return resp.Bytes(), err
 }
 
