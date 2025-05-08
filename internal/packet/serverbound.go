@@ -3,29 +3,44 @@ package packet
 import (
 	"bytes"
 
+	"github.com/blara/go-mineserver/internal/client"
 	"github.com/blara/go-mineserver/internal/log"
 	"github.com/blara/go-mineserver/internal/state"
 )
 
-type ServerboundPacket any
+type Serverbound any
 
-func Deserialize(buf *bytes.Buffer, s *state.Session) ServerboundPacket {
-	packetID, err := readVarInt(buf)
+func Parse(msg []byte, c *client.Client) Serverbound {
+	buf := bytes.NewBuffer(msg)
+
+	length, err := readVarInt(buf)
+	if err != nil {
+		log.Error("Error reading packet length", "err", err)
+	}
+
+	id, err := readVarInt(buf)
 	if err != nil {
 		log.Error("error reading packet ID", "msg", err)
 		return nil
 	}
 
-	switch s.State {
-		case state.StateNull:
-			return NullRequestFactory(byte(packetID), buf, s)
-		case state.StateStatus:
-			return StatusRequestFactory(byte(packetID), buf, s)
-		case state.StateLogin:
-			return LoginRequestFactory(byte(packetID), buf, s)
-		case state.StateConfiguration:
-			return ConfigurationRequestFactory(byte(packetID), buf, s)
-		default:
-			return nil
+	pkt := Packet{
+		Length: length,
+		ID:     byte(id),
+	}
+
+	log.Debug("\tpacket unwrapped", "pkt", log.Fmt("%+v", pkt))
+
+	switch c.State {
+	case state.Null:
+		return NullRequestFactory(pkt, buf)
+	case state.Status:
+		return StatusRequestFactory(pkt.ID, buf)
+	case state.Login:
+		return LoginRequestFactory(pkt.ID, buf)
+	case state.Configuration:
+		return ConfigurationRequestFactory(pkt.ID, buf)
+	default:
+		return nil
 	}
 }

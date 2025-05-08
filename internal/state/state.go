@@ -1,10 +1,12 @@
 package state
 
 // All possible client states
+type State uint8
+
 const (
-	StateNull SessionState = iota
-	StateStatus
-	StateLogin
-	StateConfiguration
-	StatePlay
+	Null State = iota
+	Status
+	Login
+	Configuration
+	Play
 )

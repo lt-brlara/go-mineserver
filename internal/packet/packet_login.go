@@ -5,12 +5,12 @@ import (
 	"fmt"
 )
 
-type LoginStartRequest struct {
+type LoginStart struct {
 	Name string
 	PlayerUUID UUID
 }
 
-func NewLoginStartRequest(data *bytes.Buffer) (*LoginStartRequest, error) {
+func NewLoginStartRequest(data *bytes.Buffer) (*LoginStart, error) {
 
 	stringLength, err := readVarInt(data)
 	if err != nil {
@@ -28,19 +28,19 @@ func NewLoginStartRequest(data *bytes.Buffer) (*LoginStartRequest, error) {
 		uuidBytes[10:],
 	)
 
-	return &LoginStartRequest{
+	return &LoginStart{
 		Name: string(name),
 		PlayerUUID: uuidBytes,
 	}, nil
 }
 
-type LoginAcknowledgedRequest struct {
+type LoginAcknowledged struct {
 	Name string
 	PlayerUUID UUID
 }
 
-func NewLoginAcknowledgedRequest(data *bytes.Buffer) (*LoginAcknowledgedRequest, error) {
-	return &LoginAcknowledgedRequest{}, nil
+func NewLoginAcknowledgedRequest(data *bytes.Buffer) (*LoginAcknowledged, error) {
+	return &LoginAcknowledged{}, nil
 }
 
 type Property struct {
@@ -54,7 +54,7 @@ type LoginSuccessResponse struct {
 	Properties []Property
 }
 
-func NewLoginSuccessResponse(r *LoginStartRequest) (*LoginSuccessResponse) {
+func NewLoginSuccessResponse(r *LoginStart) (*LoginSuccessResponse) {
 	return &LoginSuccessResponse{
 		UUID: r.PlayerUUID,
 		Username: r.Name,

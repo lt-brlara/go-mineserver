@@ -4,12 +4,12 @@ import (
 	"log"
 
 	"github.com/blara/go-mineserver/internal/server"
+	"github.com/hashicorp/go-hclog"
 )
 
 func main() {
-	log.Println("hello world!")
+	hclog.Default().SetLevel(hclog.Debug)
 
-	s := server.New()
-
-	log.Fatal(s.Run())
+	s := server.NewServer(":25565")
+	log.Fatal(s.Start())
 }

@@ -1,56 +1,43 @@
 package handle
 
 import (
+	"errors"
+
 	"github.com/blara/go-mineserver/internal/packet"
-	"github.com/blara/go-mineserver/internal/state"
 )
 
+func handleHandshake(r *Request) Result {
+	var err error
 
-var _ ResponseStrategy = (*StatusStrategy)(nil)
-
-func NewStatusStrategy() ResponseStrategy {
-    return &StatusStrategy{}
-}
-
-type StatusStrategy struct{}
-
-func (rs *StatusStrategy) Execute(r packet.ServerboundPacket, s *state.Session) (packet.ClientboundPacket, error) {
-	_ = r.(*packet.StatusRequest)
-	return packet.NewStatusReponse(), nil
-}
-
-
-var _ ResponseStrategy = (*HandshakeResponseStrategy)(nil)
-func NewHandshakeStrategy() ResponseStrategy {
-    return &HandshakeResponseStrategy{}
-}
-
-type HandshakeResponseStrategy struct{}
-
-func (rs *HandshakeResponseStrategy) Execute(r packet.ServerboundPacket, s *state.Session) (packet.ClientboundPacket, error) {
-	req := r.(*packet.HandshakeRequest)
-
-	s.SetState(state.SessionState(req.NextState))
-
-	return nil, nil
-}
-
-
-var _ ResponseStrategy = (*PingStrategy)(nil)
-
-func NewPingStrategy() ResponseStrategy {
-    return &PingStrategy{}
-}
-
-type PingStrategy struct{}
-
-func (rs *PingStrategy) Execute(r packet.ServerboundPacket, s *state.Session) (packet.ClientboundPacket, error) {
-	p := r.(*packet.PingRequest)
-	resp := &packet.PingResponse{
-		Timestamp: p.Timestamp,
+	data, ok := r.Data.(*packet.HandshakeRequest)
+	if !ok {
+		err = errors.New("Unable to assert type PingRequest")
 	}
+	r.Client.SetState(data.NextState)
+	return Result{
+		Err: err,
+	}
+}
 
-	s.Disconnect = true
+func handleStatusRequest(r *Request) Result {
+	return Result{
+		Response: packet.NewStatusReponse(),
+		Err: nil,
+	}
+}
 
-	return resp, nil
+func handlePing(r *Request) Result {
+	var err error
+
+	data, ok := r.Data.(*packet.PingRequest)
+	if !ok {
+		err = errors.New("Unable to assert type PingRequest")
+	}
+	return Result{
+		Response: &packet.PingResponse{
+			Timestamp: data.Timestamp,
+		},
+		Err: err,
+	}
+	
 }

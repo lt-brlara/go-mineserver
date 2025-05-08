@@ -15,7 +15,7 @@ type HandshakeRequest struct {
 	ProtocolVersion int32              `json:"version"`
 	Address         string             `json:"addr"`
 	Port            int32              `json:"port"`
-	NextState       state.SessionState `json:"nextState"`
+	NextState       state.State `json:"nextState"`
 }
 
 // NewHandshakeRequest returns a HandshakeRequest with all fields parsed.
@@ -47,7 +47,7 @@ func NewHandshakeRequest(data *bytes.Buffer) (*HandshakeRequest, error) {
 		ProtocolVersion: protocolVersion,
 		Address:         string(serverAddr),
 		Port:            int32(binary.BigEndian.Uint16(port)),
-		NextState:       state.SessionState(nextState),
+		NextState:       state.State(nextState),
 	}, nil
 }
 

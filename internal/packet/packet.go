@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/blara/go-mineserver/internal/state"
+	"github.com/blara/go-mineserver/internal/log"
 )
 
 const (
@@ -20,70 +20,89 @@ var (
 	ErrStateNotHandled = errors.New("Packet has a state that is not handled")
 )
 
-func NullRequestFactory(id byte, data *bytes.Buffer, session *state.Session) ServerboundPacket {
-	switch id {
-		case byte(0x00):
-			r, _ := NewHandshakeRequest(data)
-			return r
-		default:
-			return nil
+type Packet struct {
+	Length int32
+	ID byte
+}
+
+func readBool(b *bytes.Buffer) (bool, error) {
+
+	readBuffer := make([]byte, 1)
+	_, err := b.Read(readBuffer); if err != nil {
+		return false, err
+	}
+
+	if readBuffer[0] == 0x01 {
+		return true, nil
+	} else {
+		return false, nil
 	}
 }
 
-func StatusRequestFactory(id byte, data *bytes.Buffer, session *state.Session) ServerboundPacket {
-
-	switch id {
-		case STATUS_PACKET_ID:
-			r, _ := NewStatusRequest(data)
-			return r
-		case PING_PACKET_ID:
-			r, _ := NewPingRequest(data)
-			return r
-		default:
-			return nil
+func readUint8(b *bytes.Buffer) (uint8, error) {
+	readBuffer := make([]byte, 1)
+	_, err := b.Read(readBuffer); if err != nil {
+		return 0, err
 	}
+
+	return uint8(readBuffer[0]), nil
 }
 
-func LoginRequestFactory(id byte, data *bytes.Buffer, session *state.Session) ServerboundPacket {
-	switch id {
-		case STATUS_PACKET_ID:
-			r, _ := NewLoginStartRequest(data)
-			return r
-		case byte(0x03):
-			r, _ := NewLoginAcknowledgedRequest(data)
-			return r
-		default:
-			return nil
-	}
-}
-
-func ConfigurationRequestFactory(id byte, data *bytes.Buffer, session *state.Session) ServerboundPacket {
-	switch id {
-		case byte(0x07):
-			r, _ := NewServerboundKnownPacksRequest(data)
-			return r
-		case byte(0x03):
-			r, _ := NewAcknowledgeFinishConfiguration(data)
-			return r
-		default:
-			return nil
-	}
-}
-
-func IsPacketUrgent(pkt ServerboundPacket) bool {
-	switch pkt.(type) {
-	case *HandshakeRequest,
-		*LoginStartRequest,
-		*LoginAcknowledgedRequest,
-		*PingRequest,
-		*StatusRequest,
-		*ServerboundKnownPacksRequest:
-		return true
+func NullRequestFactory(pkt Packet, data *bytes.Buffer) Serverbound {
+	switch pkt.ID {
+	case byte(0x00):
+		r, _ := NewHandshakeRequest(data)
+		return r
 	default:
-		return false
+		return nil
 	}
 }
 
-func GetPacketLength(d *bytes.Buffer) (int32, error) {
-	return readVarInt(d)
+func StatusRequestFactory(id byte, data *bytes.Buffer) Serverbound {
+
+	switch id {
+	case STATUS_PACKET_ID:
+		r, _ := NewStatusRequest(data)
+		return r
+	case PING_PACKET_ID:
+		r, _ := NewPingRequest(data)
+		return r
+	default:
+		return nil
+	}
+}
+
+func LoginRequestFactory(id byte, data *bytes.Buffer) Serverbound {
+	switch id {
+	case STATUS_PACKET_ID:
+		r, _ := NewLoginStartRequest(data)
+		return r
+	case byte(0x03):
+		r, _ := NewLoginAcknowledgedRequest(data)
+		return r
+	default:
+		return nil
+	}
+}
+
+func ConfigurationRequestFactory(id byte, data *bytes.Buffer) Serverbound {
+	switch id {
+	case byte(0x00):
+		r, err := NewClientInformation(data); if err != nil {
+			log.Error("Error parsing packet", "err", err, "data", log.Fmt("%+v", r))
+		}
+		return r
+	case byte(0x03):
+		r, err := NewAcknowledgeFinishConfiguration(data); if err != nil {
+			log.Error("Error parsing packet", "err", err, "data", log.Fmt("%+v", r))
+		}
+		return r
+	case byte(0x07):
+		r, err := NewServerboundKnownPacksRequest(data); if err != nil {
+			log.Error("Error parsing packet", "err", err, "data", log.Fmt("%+v", r))
+		}
+		return r
+	default:
+	return nil
+	}
 }

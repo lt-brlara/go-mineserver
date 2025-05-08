@@ -5,34 +5,24 @@ import (
 	"github.com/blara/go-mineserver/internal/state"
 )
 
-var _ ResponseStrategy = (*LoginStartStrategy)(nil)
-
-func NewLoginStartStrategy() ResponseStrategy {
-	return &LoginStartStrategy{}
+func handleLoginStart(r *Request) Result {
+	req := r.Data.(*packet.LoginStart)
+	return Result{
+		Response: packet.NewLoginSuccessResponse(req), 
+		Err: nil,
+	}
 }
 
-type LoginStartStrategy struct{}
+func handleLoginAcknowledged(r *Request) Result {
+	_ = r.Data.(*packet.LoginAcknowledged)
 
-func (rs *LoginStartStrategy) Execute(r packet.ServerboundPacket, s *state.Session) (packet.ClientboundPacket, error) {
-	req := r.(*packet.LoginStartRequest)
-	return packet.NewLoginSuccessResponse(req), nil
-}
-
-var _ ResponseStrategy = (*LoginAcknowledgedStrategy)(nil)
-
-func NewLoginAckStrategy() ResponseStrategy {
-	return &LoginAcknowledgedStrategy{}
-}
-
-type LoginAcknowledgedStrategy struct{}
-
-func (rs *LoginAcknowledgedStrategy) Execute(r packet.ServerboundPacket, s *state.Session) (packet.ClientboundPacket, error) {
-	_ = r.(*packet.LoginAcknowledgedRequest)
-
-	err := s.SetState(state.StateConfiguration)
+	err := r.Client.SetState(state.Configuration)
 	if err != nil {
-		return nil, err
+		return Result{Response: nil, Err: err}
 	}
 
-	return packet.NewClientboundKnownPacksResponse(), nil
+	return Result{
+		Response: packet.NewClientboundKnownPacksResponse(),
+		Err: nil,
+	}
 }
