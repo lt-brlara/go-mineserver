@@ -8,8 +8,8 @@ import (
 func handleLoginStart(r *Request) Result {
 	req := r.Data.(*packet.LoginStart)
 	return Result{
-		Response: packet.NewLoginSuccessResponse(req), 
-		Err: nil,
+		Response: packet.NewLoginSuccessResponse(req),
+		Err:      nil,
 	}
 }
 
@@ -23,6 +23,6 @@ func handleLoginAcknowledged(r *Request) Result {
 
 	return Result{
 		Response: packet.NewClientboundKnownPacksResponse(),
-		Err: nil,
+		Err:      nil,
 	}
 }

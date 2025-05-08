@@ -10,14 +10,14 @@ import (
 )
 
 type Client struct {
-	Conn net.Conn
+	Conn  net.Conn
 	State state.State
-	mu sync.Mutex
+	mu    sync.Mutex
 }
 
 func NewClient(c net.Conn) *Client {
 	return &Client{
-		Conn: c,
+		Conn:  c,
 		State: state.Null,
 	}
 }

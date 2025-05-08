@@ -19,14 +19,14 @@ type Server struct {
 	listenAddr string
 	ln         net.Listener
 	quitChan   chan struct{}
-	msgChan		 chan handle.Request
+	msgChan    chan handle.Request
 }
 
 func NewServer(addr string) *Server {
 	return &Server{
 		listenAddr: addr,
 		quitChan:   make(chan struct{}),
-		msgChan:		make(chan handle.Request),
+		msgChan:    make(chan handle.Request),
 	}
 }
 
@@ -89,7 +89,8 @@ func (s *Server) read(c *client.Client) {
 		result := req.Handle()
 
 		if result.Response != nil {
-			resp, err := result.Response.Serialize(); if err != nil {
+			resp, err := result.Response.Serialize()
+			if err != nil {
 				log.Error("Error serializing response", "err", err)
 			}
 			c.Conn.Write(resp)

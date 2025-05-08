@@ -7,13 +7,13 @@ import (
 )
 
 type ClientInformation struct {
-	Locale string
-	ViewDistance int8
-	ChatMode int32
-	ChatColors bool
-	DisplayedSkinParts uint8
-	MainHand int32
-	TextFilteringEnabled bool
+	Locale                string
+	ViewDistance          int8
+	ChatMode              int32
+	ChatColors            bool
+	DisplayedSkinParts    uint8
+	MainHand              int32
+	TextFilteringEnabled  bool
 	ServerListingsEnabled bool
 }
 
@@ -21,7 +21,8 @@ func NewClientInformation(data *bytes.Buffer) (*ClientInformation, error) {
 	var info ClientInformation
 	var readBuffer []byte
 
-	localeLength, err := readVarInt(data); if err != nil {
+	localeLength, err := readVarInt(data)
+	if err != nil {
 		return nil, err
 	}
 
@@ -33,32 +34,38 @@ func NewClientInformation(data *bytes.Buffer) (*ClientInformation, error) {
 	data.Read(readBuffer)
 	info.ViewDistance = int8(readBuffer[0])
 
-	chatMode, err := readVarInt(data); if err != nil {
+	chatMode, err := readVarInt(data)
+	if err != nil {
 		return &info, err
 	}
 	info.ChatMode = chatMode
 
-	chatColorsEnabled, err := readBool(data); if err != nil {
+	chatColorsEnabled, err := readBool(data)
+	if err != nil {
 		return &info, err
 	}
 	info.ChatColors = chatColorsEnabled
 
-	displayedSkinParts, err := readUint8(data); if err != nil {
+	displayedSkinParts, err := readUint8(data)
+	if err != nil {
 		return &info, err
 	}
-	info.DisplayedSkinParts	= displayedSkinParts
+	info.DisplayedSkinParts = displayedSkinParts
 
-	mainHand, err := readVarInt(data); if err != nil {
+	mainHand, err := readVarInt(data)
+	if err != nil {
 		return &info, err
 	}
 	info.MainHand = mainHand
 
-	filteringEnabled, err := readBool(data); if err != nil {
+	filteringEnabled, err := readBool(data)
+	if err != nil {
 		return &info, err
 	}
 	info.TextFilteringEnabled = filteringEnabled
 
-	listingsEnabled, err := readBool(data); if err != nil {
+	listingsEnabled, err := readBool(data)
+	if err != nil {
 		return &info, err
 	}
 	info.ServerListingsEnabled = listingsEnabled
@@ -120,7 +127,7 @@ func NewServerboundKnownPacksRequest(data *bytes.Buffer) (*ServerboundKnownPacks
 	return &ServerboundKnownPacksRequest{}, nil
 }
 
-type AcknowledgeFinishConfiguration struct {}
+type AcknowledgeFinishConfiguration struct{}
 
 func NewAcknowledgeFinishConfiguration(data *bytes.Buffer) (*AcknowledgeFinishConfiguration, error) {
 	return &AcknowledgeFinishConfiguration{}, nil

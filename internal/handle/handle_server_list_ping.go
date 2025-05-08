@@ -22,7 +22,7 @@ func handleHandshake(r *Request) Result {
 func handleStatusRequest(r *Request) Result {
 	return Result{
 		Response: packet.NewStatusReponse(),
-		Err: nil,
+		Err:      nil,
 	}
 }
 
@@ -39,5 +39,5 @@ func handlePing(r *Request) Result {
 		},
 		Err: err,
 	}
-	
+
 }

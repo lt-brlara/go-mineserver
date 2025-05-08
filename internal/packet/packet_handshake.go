@@ -12,9 +12,9 @@ import (
 // See the reference documentation on intention for more information:
 // https://wiki.vg/Protocol#Handshaking
 type HandshakeRequest struct {
-	ProtocolVersion int32              `json:"version"`
-	Address         string             `json:"addr"`
-	Port            int32              `json:"port"`
+	ProtocolVersion int32       `json:"version"`
+	Address         string      `json:"addr"`
+	Port            int32       `json:"port"`
 	NextState       state.State `json:"nextState"`
 }
 

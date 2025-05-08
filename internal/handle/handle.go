@@ -13,22 +13,22 @@ const (
 )
 
 type Request struct {
-	Data		packet.Serverbound
-	Client	*client.Client
+	Data    packet.Serverbound
+	Client  *client.Client
 	RawData []byte
 }
 
 type Result struct {
-	Response  packet.ClientboundPacket
-	Err       error
+	Response packet.ClientboundPacket
+	Err      error
 }
 
 type HandlerFunc func(*Request) Result
 
 func NewRequest(data packet.Serverbound, client *client.Client, rawData []byte) Request {
 	return Request{
-		Data: data,
-		Client: client,
+		Data:    data,
+		Client:  client,
 		RawData: rawData,
 	}
 }

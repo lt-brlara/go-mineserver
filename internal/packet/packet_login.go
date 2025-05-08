@@ -6,7 +6,7 @@ import (
 )
 
 type LoginStart struct {
-	Name string
+	Name       string
 	PlayerUUID UUID
 }
 
@@ -20,7 +20,7 @@ func NewLoginStartRequest(data *bytes.Buffer) (*LoginStart, error) {
 	_, err = data.Read(name)
 	uuidBytes := data.Bytes()
 
-	_ = fmt.Sprintf( "%x-%x-%x-%x-%x",
+	_ = fmt.Sprintf("%x-%x-%x-%x-%x",
 		uuidBytes[0:4],
 		uuidBytes[4:6],
 		uuidBytes[6:8],
@@ -29,13 +29,13 @@ func NewLoginStartRequest(data *bytes.Buffer) (*LoginStart, error) {
 	)
 
 	return &LoginStart{
-		Name: string(name),
+		Name:       string(name),
 		PlayerUUID: uuidBytes,
 	}, nil
 }
 
 type LoginAcknowledged struct {
-	Name string
+	Name       string
 	PlayerUUID UUID
 }
 
@@ -44,19 +44,19 @@ func NewLoginAcknowledgedRequest(data *bytes.Buffer) (*LoginAcknowledged, error)
 }
 
 type Property struct {
-		Name string
-		Value string
-		Signature string
-	}
+	Name      string
+	Value     string
+	Signature string
+}
 type LoginSuccessResponse struct {
-	UUID UUID
-	Username string
+	UUID       UUID
+	Username   string
 	Properties []Property
 }
 
-func NewLoginSuccessResponse(r *LoginStart) (*LoginSuccessResponse) {
+func NewLoginSuccessResponse(r *LoginStart) *LoginSuccessResponse {
 	return &LoginSuccessResponse{
-		UUID: r.PlayerUUID,
+		UUID:     r.PlayerUUID,
 		Username: r.Name,
 	}
 }
@@ -78,4 +78,3 @@ func (r *LoginSuccessResponse) Serialize() ([]byte, error) {
 
 	return resp.Bytes(), err
 }
-
