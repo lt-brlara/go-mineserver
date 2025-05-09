@@ -19,6 +19,7 @@ type Request struct {
 }
 
 type Result struct {
+	Client	 *client.Client
 	Response packet.ClientboundPacket
 	Err      error
 }
