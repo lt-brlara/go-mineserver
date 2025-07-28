@@ -55,16 +55,44 @@ func (s *Server) read(c *client.Client) {
 			"state", c.State,
 		)
 
-		result := req.Handle()
-
-		if result.Response != nil {
-			resp, err := result.Response.Serialize()
-			if err != nil {
-				log.Error("Error serializing response", "err", err)
-			}
-			c.Conn.Write(resp)
+		if isRequestPriority(req) {
+			handleRequest(req)
+		} else {
+			s.AddEvent(req)
 		}
 	}
+}
+
+func isRequestPriority(req handle.Request) bool {
+
+	if req.Client.State < 3 {
+		return true
+	}
+
+	switch req.Data.(type) {
+	case *packet.ClientInformation:
+		return false
+	}
+
+	return false
+}
+
+func handleRequest(req handle.Request) error {
+	result := req.Handle()
+
+	if result.Err != nil {
+		return result.Err
+	}
+
+	if result.Response != nil {
+		resp, err := result.Response.Serialize()
+		if err != nil {
+			return err
+		}
+		req.Client.Conn.Write(resp)
+	}
+
+	return nil
 }
 
 func (s *Server) listen() {
@@ -76,4 +104,3 @@ func (s *Server) listen() {
 
 	s.ln = ln
 }
-

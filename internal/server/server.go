@@ -11,16 +11,17 @@ type Server struct {
 	listenAddr string
 	ln         net.Listener
 	quitChan   chan struct{}
-	resultChan    chan handle.Result
-	clients		 []*client.Client
-	
+	resultChan chan handle.Result
+	clients    []*client.Client
+	eventQueue *Queue
 }
 
 func NewServer(addr string) *Server {
 	return &Server{
 		listenAddr: addr,
 		quitChan:   make(chan struct{}),
-		resultChan:    make(chan handle.Result, 100),
+		resultChan: make(chan handle.Result, 100),
+		eventQueue: NewEventQueue(),
 	}
 }
 

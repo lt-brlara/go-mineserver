@@ -10,9 +10,21 @@ import (
 )
 
 type Client struct {
-	Conn  net.Conn
-	State state.State
-	mu    sync.Mutex
+	Conn   net.Conn
+	State  state.State
+	mu     sync.Mutex
+	Config ClientConfig
+}
+
+type ClientConfig struct {
+	Locale                string
+	ViewDistance          int8
+	ChatMode              int32
+	ChatColors            bool
+	DisplayedSkinParts    uint8
+	MainHand              int32
+	TextFilteringEnabled  bool
+	ServerListingsEnabled bool
 }
 
 func NewClient(c net.Conn) *Client {
