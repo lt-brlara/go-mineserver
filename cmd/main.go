@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	hclog.Default().SetLevel(hclog.Trace)
+	hclog.Default().SetLevel(hclog.Debug)
 
 	s := server.NewServer(":25565")
 	log.Fatal(s.Start())

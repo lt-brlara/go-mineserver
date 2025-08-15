@@ -1,12 +1,11 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
 	"net"
-	"reflect"
 
 	"github.com/blara/go-mineserver/internal/client"
-	"github.com/blara/go-mineserver/internal/handle"
 	"github.com/blara/go-mineserver/internal/log"
 	"github.com/blara/go-mineserver/internal/packet"
 )
@@ -20,79 +19,34 @@ func (s *Server) acceptLoop() error {
 		}
 
 		c := client.NewClient(conn)
-		s.clients = append(s.clients, c)
+		s.addClient(c)
 
-		log.Debug("connection accepted", "client_addr", conn.RemoteAddr().String())
+		log.Debug("connection accepted", "client", c.GetAddr().String())
 		go s.read(c)
 	}
 }
 
 func (s *Server) read(c *client.Client) {
-	defer c.Close()
-	buf := make([]byte, 4096)
+	defer s.removeClient(c)
+
 	for {
-		n, err := c.Read(buf)
+		p, err := c.NextPacket()
 		if err != nil {
-			c.HandleError(err)
 			break
 		}
 
-		msg := buf[:n]
-
-		log.Debug("message recieved from client",
-			"bytes", log.Fmt("0x%x", msg),
-			"state", c.State,
-		)
-
-		req := handle.NewRequest(
-			packet.Parse(msg, c),
-			c,
-			msg,
-		)
-
-		log.Debug("\thandling packet",
-			"packetType", reflect.TypeOf(req.Data),
-			"state", c.State,
-		)
-
-		if isRequestPriority(req) {
-			handleRequest(req)
-		} else {
-			s.AddEvent(req)
-		}
-	}
-}
-
-func isRequestPriority(req handle.Request) bool {
-
-	if req.Client.State < 3 {
-		return true
-	}
-
-	switch req.Data.(type) {
-	case *packet.ClientInformation:
-		return false
-	}
-
-	return false
-}
-
-func handleRequest(req handle.Request) error {
-	result := req.Handle()
-
-	if result.Err != nil {
-		return result.Err
-	}
-
-	if result.Response != nil {
-		resp, err := result.Response.Serialize()
+		buf := bytes.NewBuffer(p)
+		packetID, err := packet.ReadVarInt(buf)
 		if err != nil {
-			return err
+			log.Error("failed to read packet ID:", err)
+			continue
 		}
-		req.Client.Conn.Write(resp)
-	}
 
-	return nil
+		log.Trace("packet received", "id", packetID, "bytes", log.Fmt("0x%x", p))
+		dispatch(c, packetID, buf)
+
+		log.Trace("current client list", "clients", s.clients)
+	}
 }
 
 func (s *Server) listen() {
@@ -103,4 +57,96 @@ func (s *Server) listen() {
 	log.Info(fmt.Sprintf("server listening on %s", s.listenAddr))
 
 	s.ln = ln
+}
+
+func dispatch(client *client.Client, id int32, data *bytes.Buffer) {
+	currentState := client.GetState()
+
+	switch {
+	case currentState == 0 && id == 0x00:
+		req, err := Decode[Handshake](data.Bytes())
+		if err != nil {
+			log.Error("failed to decode handshake", "error", err)
+		}
+
+		client.SetState(req.NextState)
+		log.Debug("client state updated",
+			"client", client.GetAddr().String(),
+			"state", client.GetState(),
+		)
+
+	case currentState == 1 && id == 0x00:
+		_, err := Decode[StatusRequest](data.Bytes())
+		if err != nil {
+			log.Error("failed to unmarshal handshake", "error", err)
+		}
+
+		msg := NewStatusResponse()
+		err = send(client, msg)
+		if err != nil {
+			log.Error("failed to send message to client", "error", err)
+		}
+
+	case currentState == 1 && id == 0x01:
+		req, err := Decode[PingRequest](data.Bytes())
+		if err != nil {
+			log.Error("failed to decode ping request", "error", err)
+		}
+
+		msg := NewPingResponse(req.Timestamp)
+		send(client, msg)
+
+	case currentState == 2 && id == 0x00:
+		req, err := Decode[LoginStart](data.Bytes())
+		if err != nil {
+			log.Error("failed to decode login start", "error", err)
+		}
+
+		log.Info("player connecting",
+			"username", req.Name,
+			"uuid", req.PlayerUUID.FormattedString(),
+		)
+
+		// Will likely need to do validation steps such as:
+		// - Validate user info w/ Mojang as source of truth
+		// - Verify user skin
+
+		client.SetUsername(req.Name)
+		client.SetUUID(req.PlayerUUID)
+
+		msg := NewLoginSuccess(req)
+		send(client, msg)
+
+	case currentState == 2 && id == 0x03:
+		_, err := Decode[LoginAcknowledged](data.Bytes())
+		if err != nil {
+			log.Error("failed to decode login acknowledged", "error", err)
+		}
+
+		log.Info("player logged in",
+			"username", client.GetUsername(),
+			"uuid", client.GetUUID().FormattedString(),
+		)
+
+		client.SetState(3)
+
+	default:
+		log.Error("unknown packet ID",
+			"id", id,
+			"clientState", client.GetState(),
+			"bytes", log.Fmt("%02x%x", byte(id), data),
+		)
+	}
+}
+
+func send(c *client.Client, msg any) error {
+	pkt, err := Encode(msg)
+	if err != nil {
+		return err
+	}
+
+	log.Trace("sending message", "client_addr", c.GetAddr(), "bytes", log.Fmt("%x", pkt))
+
+	_, err = c.Write(pkt)
+	return err
 }
